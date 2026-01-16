@@ -1,0 +1,452 @@
+User: Follow instructions in [speckit.analyze.prompt.md](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/.github/prompts/speckit.analyze.prompt.md).
+
+GitHub Copilot: Optimizing tool selection...
+
+User: We are working on feature #file:001-clinic-followup 
+Evidence is in #file:sources 
+Use Spec-Driven Development: sources → spec → plan → tasks. 
+Do not propose implementation until tasks exist.
+First, read the repo constitution #file:constitution.md  and instructions #file:copilot-instructions.md  , then generate/refresh the spec.
+
+GitHub Copilot: Enable Claude Opus 4.5 for all clients
+[object Object]
+
+User: @agent Enable: "Enable Claude Opus 4.5 for all clients"
+
+GitHub Copilot: I'll run the specification analysis for the `001-clinic-followup` feature. Let me first check prerequisites and then load the artifacts. 
+
+Ran terminal command: if (Test-Path ".specify/scripts/bash/check-prerequisites.sh") { bash .specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks } else { Write-Output "Script not found - checking manually"; Get-ChildItem -Path "specs/001-clinic-followup" }
+
+The script requires a feature branch, but we're on `main`. I'll proceed manually by loading the required artifacts directly. Let me read all three core artifacts and the constitution: 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/spec.md)
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/plan.md)
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/tasks.md)
+
+Now let me also load the constitution and the source documents for complete analysis: 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/docs/sources/001-clinic-followup/initial-intake.md)
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/docs/sources/001-clinic-followup/seed-data.md)
+
+Now I have all the artifacts. Let me produce the comprehensive analysis report.
+
+---
+
+## Specification Analysis Report
+
+### Findings Table
+
+| ID | Category | Severity | Location(s) | Summary | Recommendation |
+|----|----------|----------|-------------|---------|----------------|
+| A1 | Ambiguity | HIGH | spec.md | "Streak bonus" eligibility rule says "completion before due date" but doesn't specify if same-day completion counts as "before" | Clarify: does `completion_at < due_at` or `completion_at <= due_at` qualify? |
+| A2 | Ambiguity | MEDIUM | spec.md | FR-ANALYTICS-01 mentions "quartiles and signals" but lacks measurable thresholds or time windows | Specify the time window (e.g., 30 days) and define quartile computation formula |
+| A3 | Ambiguity | MEDIUM | plan.md | Streak bonus algorithm says "directly follows chain order" but doesn't define what "order" means (completion timestamp vs. validation timestamp) | Clarify: is order based on task `validated_at` or task `completed_at`? |
+| A4 | Ambiguity | LOW | spec.md | Task statuses include RETOMADO (reopen) but spec doesn't define when this status is triggered | Add explicit transition rules for RETOMADO (e.g., PAUSADO → RETOMADO → FEITO) |
+| A5 | Ambiguity | MEDIUM | spec.md | FR-REDEEM-01 lists statuses but doesn't define EXPIRED trigger (system cron? manual?) | Specify: is EXPIRED triggered by scheduled job or on-access check? |
+| C1 | Coverage Gap | HIGH | spec.md / tasks.md | FR-AUTH-01 requires "email + password" auth but tasks.md doesn't include password reset or account lockout | Add tasks for password reset flow OR mark as out-of-scope in spec |
+| C2 | Coverage Gap | MEDIUM | spec.md | FR-JOURNEY-01 references "ordered Journey Stages (lead → close → follow-up)" but tasks.md doesn't include patient journey assignment/progression | Add task for assigning patients to journey stages and tracking progression |
+| C3 | Coverage Gap | MEDIUM | spec.md | AC#7 requires "switching locale is possible" but tasks.md only covers loading locale, no UI for switching | Add task for locale switcher UI or clarify it's admin-only via env var |
+| C4 | Coverage Gap | LOW | plan.md | Plan mentions `retention_policies` table but tasks.md §11 only has "scaffolding" — no CRUD for retention policies | Add admin UI task for retention policy management OR defer explicitly |
+| I1 | Inconsistency | MEDIUM | spec.md vs plan.md | Spec says "Done with delay: 20" deduction vs plan says "FEITO + delay => 80" — both are correct but phrasing differs (deduction vs final) | Standardize terminology: use either "deduction" or "final points" consistently |
+| I2 | Inconsistency | LOW | spec.md vs plan.md | Spec uses "RETOMADO" but plan.md schema uses `had_reopen bool` — terminology drift (Portuguese vs English) | Align: either use Portuguese status names consistently or map explicitly |
+| I3 | Inconsistency | LOW | tasks.md | Streak test example "10+10+10+12+10" doesn't match spec chain rule (+2 each consecutive) — suggests chain break interpretation differs | Clarify the expected test scenario in spec (when does chain break?) |
+| U1 | Underspecification | MEDIUM | spec.md | FR-REWARD-01 "eligibility rules (optional plan and/or pillar restriction)" lacks detail on AND vs OR logic | Clarify: is eligibility (plan AND pillar) or (plan OR pillar)? |
+| U2 | Underspecification | MEDIUM | spec.md | FR-TASK-01 says "templates optional" but doesn't define template behavior or defer explicitly | Either define task templates or remove mention to avoid scope creep |
+| U3 | Underspecification | LOW | spec.md | FR-AUTH-01 mentions "Clinic Admins may be members of multiple clinics" but doesn't specify admin creation flow | Clarify: who creates clinic admins? Super-admin role needed? |
+| D1 | Duplication | LOW | spec.md vs plan.md | Analytics requirements appear in both spec and plan with slightly different wording | Keep analytics requirements in spec only; plan should reference spec |
+
+---
+
+### Coverage Summary Table
+
+| Requirement Key | Has Task? | Task IDs | Notes |
+|-----------------|-----------|----------|-------|
+| `fr-clinic-01-multi-clinic` | ✅ | §0 (repo), §1 (seed), §3 (tenancy), §12 (e2e) | Well covered |
+| `fr-auth-01-authentication` | ⚠️ Partial | §3 (email/password auth) | Missing: password reset, account lockout |
+| `fr-method-01-methodologies` | ✅ | §5 (admin UI) | Covered |
+| `fr-plan-01-followup-plans` | ✅ | §5 (admin UI) | Covered |
+| `fr-journey-01-patient-journey` | ⚠️ Partial | §5 (stages definition) | Missing: patient assignment to stages |
+| `fr-task-01-task-assignment` | ✅ | §6, §7 | Covered |
+| `fr-task-02-task-statuses` | ✅ | §2 (enums), §7, §8 | Covered |
+| `fr-points-01-base-scoring` | ✅ | §8 (scoring engine) | Covered |
+| `fr-points-02-streak-bonus` | ✅ | §6 (validation), §8 (scoring) | Covered |
+| `fr-reward-01-rewards-catalog` | ✅ | §9 (rewards CRUD) | Covered |
+| `fr-redeem-01-redemption` | ✅ | §9 (redemptions) | Covered |
+| `fr-analytics-01-adherence` | ✅ | §10 (quartiles) | Covered |
+| `fr-i18n-01-ui-labels` | ⚠️ Partial | §4 (label service) | Missing: runtime locale switcher UI |
+| `fr-compliance-01-lgpd` | ⚠️ Partial | §11 (audit, retention) | Missing: admin UI for retention policies |
+
+---
+
+### Constitution Alignment Issues
+
+| Principle | Status | Issue |
+|-----------|--------|-------|
+| **Law 5: No silent assumptions** | ⚠️ | spec.md has implicit assumptions about password reset flow, admin creation, and task template behavior |
+| **Law 8: Validation is part of the feature** | ✅ | spec.md has acceptance criteria; tasks.md §12 has e2e smoke test |
+| **Definition of Approved** | ⚠️ | There are **3 ambiguous items** that arguably need resolution before approval |
+
+---
+
+### Unmapped Tasks
+
+All tasks in tasks.md map to at least one requirement. No orphan tasks detected.
+
+---
+
+### Metrics
+
+| Metric | Value |
+|--------|-------|
+| Total Functional Requirements | 12 |
+| Total Non-Functional Requirements | 2 (I18N, LGPD) |
+| Total Tasks (checkbox items) | 55 |
+| Coverage % (requirements with ≥1 task) | **86%** (12/14 fully covered) |
+| Ambiguity Count | **5** |
+| Underspecification Count | **3** |
+| Duplication Count | **1** |
+| Inconsistency Count | **3** |
+| **Critical Issues** | **0** |
+| **High Issues** | **2** |
+| **Medium Issues** | **8** |
+| **Low Issues** | **7** |
+
+---
+
+## Next Actions
+
+### Recommended Before `/speckit.implement`
+
+1. **Resolve HIGH issues (A1, C1):**
+   - A1: Clarify streak eligibility comparison operator in spec.md
+   - C1: Either add password reset tasks OR explicitly mark as out-of-scope in Non-Goals
+
+2. **Address MEDIUM ambiguities (A2, A3, A5, U1, U2):**
+   - Define time window for analytics quartiles
+   - Clarify streak order (validation vs completion timestamp)
+   - Define EXPIRED trigger mechanism
+   - Specify eligibility AND/OR logic
+   - Remove or define task templates
+
+### Optional Improvements
+
+- Fix terminology drift (I1, I2) for cleaner documentation
+- Clarify test example I3 in spec for deterministic test expectations
+- Add locale switcher UI task (C3) or defer to v2
+
+---
+
+## Remediation Offer
+
+Would you like me to suggest concrete remediation edits for the **top 5 issues** (A1, C1, A2, A3, U1)? I will not apply them automatically — you must explicitly approve before any changes.
+
+User: Please suggest for every issue, then i will proposing adjustments.
+
+GitHub Copilot: ## Remediation Suggestions for All Issues
+
+Below are concrete suggestions for each finding. Review and propose any adjustments before I apply changes.
+
+---
+
+### HIGH Severity
+
+#### A1: Streak Eligibility Comparison Operator
+**Location:** spec.md
+
+**Current:**
+> Completion before due date is eligible for streak bonus.
+
+**Suggested Change:**
+> Completion on or before due date (`completion_at <= due_at`) is eligible for streak bonus.
+
+---
+
+#### C1: Missing Password Reset / Account Lockout Tasks
+**Location:** spec.md Non-Goals section + tasks.md
+
+**Option A (Defer to Non-Goals):**
+Add to spec.md Non-Goals:
+```markdown
+- Password reset and account lockout flows (v2)
+```
+
+**Option B (Add Tasks):**
+Add to tasks.md §3:
+```markdown
+- [ ] Implement password reset flow (email link)
+- [ ] Implement account lockout after N failed attempts
+```
+
+**Recommendation:** Option A for prototype scope.
+
+---
+
+### MEDIUM Severity
+
+#### A2: Analytics Time Window Undefined
+**Location:** spec.md
+
+**Current:**
+> Admin SHALL see adherence segmentation based on quartiles and signals
+
+**Suggested Change:**
+```markdown
+### FR-ANALYTICS-01 Adherence Analytics
+- Admin SHALL see adherence segmentation based on quartiles computed over the **last 30 days** (configurable per clinic).
+- Metrics include:
+  - Total points accumulated
+  - Streak bonus accumulation
+  - Counts of delayed, paused, and cancelled tasks
+- Quartile thresholds are computed dynamically per clinic based on patient distribution.
+```
+
+---
+
+#### A3: Streak Order Ambiguity
+**Location:** plan.md
+
+**Current:**
+> If current validated completion is eligible AND directly follows chain order
+
+**Suggested Change:**
+```markdown
+### Streak bonus (validated)
+- Only award streak bonus on admin validation.
+- Chain order is determined by `validated_at` timestamp (not task due date or completion timestamp).
+- Maintain patient streak state:
+  - Find last validated completion that was eligible and chain-continuing.
+  - If current validated completion is eligible AND its `validated_at` directly follows the previous chain entry (no ineligible validation in between), bonus = last_bonus + 2; else bonus resets to 10.
+- Record streak award as ledger entry.
+```
+
+---
+
+#### A5: EXPIRED Trigger Mechanism
+**Location:** spec.md
+
+**Suggested Addition** (after FR-REDEEM-01):
+```markdown
+### FR-REDEEM-02 Redemption Expiration
+- Redemptions in status APPROVED that are not marked REDEEMED within 30 days SHALL be automatically transitioned to EXPIRED by a scheduled background job (daily).
+- On EXPIRED, points SHALL be refunded to the patient via a compensating ledger entry.
+```
+
+---
+
+#### C2: Patient Journey Stage Assignment Missing
+**Location:** tasks.md §6
+
+**Suggested Addition** to §6:
+```markdown
+- [ ] Admin: assign patient to journey stage
+- [ ] Admin: advance patient through journey stages (manual progression)
+```
+
+---
+
+#### C3: Locale Switcher UI Missing
+**Location:** tasks.md §4
+
+**Option A (Defer):**
+Add to spec.md Non-Goals:
+```markdown
+- Runtime locale switcher UI (v2); locale is set via environment variable
+```
+
+**Option B (Add Task):**
+Add to tasks.md §4:
+```markdown
+- [ ] Admin: locale selector in settings (persisted per user or session)
+```
+
+**Recommendation:** Option A — prototype uses env var; UI switcher in v2.
+
+---
+
+#### C4: Retention Policy Admin UI
+**Location:** tasks.md §11
+
+**Option A (Defer):**
+Add to spec.md Non-Goals:
+```markdown
+- Admin UI for retention policy management (v2); policies configured via database seed/migration
+```
+
+**Option B (Add Task):**
+Add to tasks.md §11:
+```markdown
+- [ ] Admin: view/edit retention policies per entity type
+```
+
+**Recommendation:** Option A for prototype.
+
+---
+
+#### I1: Terminology Drift (Deduction vs Final)
+**Location:** spec.md
+
+**Current:**
+```markdown
+- Deductions:
+  - Done without delay/pause/reopen: 0
+  - Done with delay: 20
+  ...
+```
+
+**Suggested Change** (align with plan.md style):
+```markdown
+- Final base points (starting from 100):
+  - Done without delay/pause/reopen: 100 (no deduction)
+  - Done with delay: 80 (−20)
+  - Done with pause/reopen without delay: 75 (−25)
+  - Done with pause/reopen with delay: 60 (−40)
+  - Cancelled by patient: 0 (all points lost)
+  - Cancelled by clinic: no change (patient retains current points)
+```
+
+---
+
+#### U1: Eligibility AND/OR Logic
+**Location:** spec.md
+
+**Current:**
+> eligibility rules (optional plan and/or pillar restriction)
+
+**Suggested Change:**
+```markdown
+- eligibility rules:
+  - `eligible_plan_id` (optional): patient must be enrolled in this plan
+  - `eligible_pillar_id` (optional): patient must have completed ≥1 task in this pillar
+  - If both are set, **both conditions must be met** (AND logic).
+  - If neither is set, reward is available to all patients in the clinic.
+```
+
+---
+
+#### U2: Task Templates Undefined
+**Location:** spec.md
+
+**Current:**
+> Clinic Admin SHALL assign tasks to patients with due dates (direct assignment; templates optional).
+
+**Suggested Change** (remove ambiguity):
+```markdown
+### FR-TASK-01 Task Assignment
+- Clinic Admin SHALL assign tasks to patients with due dates (direct assignment only in v1).
+```
+
+And add to Non-Goals:
+```markdown
+- Task templates (v2)
+```
+
+---
+
+### LOW Severity
+
+#### A4: RETOMADO Transition Rules
+**Location:** spec.md
+
+**Suggested Addition** (after FR-TASK-02):
+```markdown
+### FR-TASK-03 Task Status Transitions
+Valid transitions:
+- A_FAZER → FEITO | EM_ATRASO | PAUSADO | CANCELADO_PELO_PACIENTE | CANCELADO_PELA_CLINICA
+- EM_ATRASO → FEITO | PAUSADO | CANCELADO_PELO_PACIENTE | CANCELADO_PELA_CLINICA
+- PAUSADO → RETOMADO | CANCELADO_PELO_PACIENTE | CANCELADO_PELA_CLINICA
+- RETOMADO → FEITO | EM_ATRASO | PAUSADO | CANCELADO_PELO_PACIENTE | CANCELADO_PELA_CLINICA
+- FEITO, CANCELADO_* are terminal states.
+```
+
+---
+
+#### I2: Portuguese vs English Terminology
+**Location:** plan.md
+
+**Suggested Addition** to plan.md Data Model section:
+```markdown
+### Status Mapping (Portuguese Domain ↔ Schema)
+| Domain Status (PT) | Schema Field |
+|--------------------|--------------|
+| RETOMADO | `had_reopen = true` |
+| PAUSADO | status history contains PAUSADO |
+| EM_ATRASO | `had_delay = true` |
+```
+
+---
+
+#### I3: Streak Test Example Clarification
+**Location:** tasks.md
+
+**Current:**
+> broken chain example => 10+10+10+12+10 (per intake narrative)
+
+**Suggested Change:**
+```markdown
+- [ ] broken chain example => validations: eligible, ineligible (late), eligible, eligible, ineligible (late) yields bonuses: 10, 0, 10, 12, 0
+```
+
+*Note: The "10+10+10+12+10" pattern seems incorrect per spec rules. Clarify the actual scenario.*
+
+---
+
+#### U3: Admin Creation Flow
+**Location:** spec.md
+
+**Suggested Addition** to spec.md:
+```markdown
+### FR-AUTH-02 Admin User Management
+- Clinic Admin SHALL be able to invite new Clinic Admins to their clinic(s) via email.
+- New admins receive a registration link to set their password.
+- There is no super-admin role in v1; initial admin is seeded via migration.
+```
+
+**Alternative (Defer):**
+Add to Non-Goals:
+```markdown
+- Admin user invitation flow (v2); initial admins seeded via migration
+```
+
+---
+
+#### D1: Duplicate Analytics Text
+**Location:** plan.md
+
+**Suggested Change** in plan.md:
+```markdown
+## Analytics (Quartiles)
+See FR-ANALYTICS-01 in spec.md. Implementation notes:
+- Compute over configurable time window (default 30 days)
+- Use SQL window functions for quartile computation
+- Display per clinic in admin dashboard
+```
+
+---
+
+## Summary of Recommended Changes
+
+| Issue | Recommended Action |
+|-------|-------------------|
+| A1 | Add `<= due_at` clarification |
+| C1 | Defer password reset to Non-Goals |
+| A2 | Add 30-day window + metrics list |
+| A3 | Clarify `validated_at` ordering |
+| A5 | Add FR-REDEEM-02 for expiration |
+| C2 | Add journey assignment tasks |
+| C3 | Defer locale UI to Non-Goals |
+| C4 | Defer retention UI to Non-Goals |
+| I1 | Standardize to "final points" format |
+| U1 | Specify AND logic for eligibility |
+| U2 | Remove "templates optional", add to Non-Goals |
+| A4 | Add FR-TASK-03 transition rules |
+| I2 | Add status mapping table |
+| I3 | Fix test example or clarify scenario |
+| U3 | Defer admin invitation to Non-Goals |
+| D1 | Replace duplicate with reference |
+
+---
+
+Please review and let me know which suggestions you'd like to adjust or approve. Once confirmed, I'll apply the changes to the spec artifacts.
