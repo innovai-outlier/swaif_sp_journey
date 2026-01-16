@@ -1,0 +1,40 @@
+{
+  "project": {
+    "name": "ClinicFollowUp",
+    "display_name": "Clinic Follow-up Gamification",
+    "version": "0.1.0-prototype",
+    "created_at": "2026-01-15",
+    "summary": "Multi-clinic Streamlit system for follow-up plans, gamified adherence tasks, points, and rewards redemption (no payments).",
+    "primary_users": [
+      "Clinic Admin",
+      "Patient"
+    ],
+    "compliance": [
+      "LGPD"
+    ],
+    "data_sensitivity": "Contains patient identifiers and adherence activity; treat as sensitive personal data."
+  },
+  "tech": {
+    "runtime": "Python 3.x",
+    "ui": "Streamlit",
+    "db": "PostgreSQL",
+    "container": "Docker",
+    "modeling": "Pydantic",
+    "style": "OOP"
+  },
+  "environments": {
+    "local_dev": {
+      "docker_compose": true,
+      "db": "PostgreSQL"
+    },
+    "prototype": {
+      "docker": true
+    }
+  },
+  "non_goals": [
+    "Payments or financial transactions",
+    "EHR/EMR integrations",
+    "Vendor portal in v1",
+    "Mobile app in v1"
+  ]
+}
