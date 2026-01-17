@@ -41,12 +41,12 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project directory structure backend/src/{models,repositories,services,api,schemas} and frontend/src/{components,pages,services}
-- [ ] T002 Initialize Python project with requirements.txt including FastAPI, Streamlit, SQLAlchemy, Pydantic, Alembic, passlib, pytest
-- [ ] T003 [P] Create Docker Compose configuration in docker-compose.yml with PostgreSQL service
-- [ ] T004 [P] Create environment configuration in .env.example with DATABASE_URL, APP_LOCALE, SECRET_KEY, SESSION_TIMEOUT_SECONDS, LOG_LEVEL
-- [ ] T005 [P] Initialize Alembic for database migrations in alembic/ directory
-- [ ] T006 [P] Configure logging infrastructure in backend/src/config/logging.py
+- [X] T001 Create project directory structure backend/src/{models,repositories,services,api,schemas} and frontend/src/{components,pages,services}
+- [X] T002 Initialize Python project with requirements.txt including FastAPI, Streamlit, SQLAlchemy, Pydantic, Alembic, passlib, pytest
+- [X] T003 [P] Create Docker Compose configuration in docker-compose.yml with PostgreSQL service
+- [X] T004 [P] Create environment configuration in .env.example with DATABASE_URL, APP_LOCALE, SECRET_KEY, SESSION_TIMEOUT_SECONDS, LOG_LEVEL
+- [X] T005 [P] Initialize Alembic for database migrations in alembic/ directory
+- [X] T006 [P] Configure logging infrastructure in backend/src/config/logging.py
 
 ---
 
@@ -56,12 +56,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Create base database models in backend/src/models/base.py with Base class and common fields (id, created_at, updated_at)
-- [ ] T008 Create TenantAwareRepository base class in backend/src/repositories/base.py with clinic_id filtering
-- [ ] T009 [P] Implement password hashing utilities in backend/src/utils/security.py using passlib with bcrypt
-- [ ] T010 [P] Create FastAPI application entry point in backend/src/main.py with CORS, middleware setup
-- [ ] T011 [P] Implement error handling middleware in backend/src/middleware/error_handler.py
-- [ ] T012 [P] Create Pydantic base schemas in backend/src/schemas/base.py for request/response models
+- [X] T007 Create base database models in backend/src/models/base.py with Base class and common fields (id, created_at, updated_at)
+- [X] T008 Create TenantAwareRepository base class in backend/src/repositories/base.py with clinic_id filtering
+- [X] T009 [P] Implement password hashing utilities in backend/src/utils/security.py using passlib with bcrypt
+- [X] T010 [P] Create FastAPI application entry point in backend/src/main.py with CORS, middleware setup
+- [X] T011 [P] Implement error handling middleware in backend/src/middleware/error_handler.py
+- [X] T012 [P] Create Pydantic base schemas in backend/src/schemas/base.py for request/response models
 - [ ] T013 Create initial database migration for base tables in alembic/versions/001_initial_schema.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
@@ -76,9 +76,9 @@
 
 ### Implementation for User Story 1
 
-- [ ] T014 [P] [US1] Create Clinic model in backend/src/models/clinic.py with fields: id, name, is_training, analytics_period_days, created_at, updated_at
-- [ ] T015 [P] [US1] Create User model in backend/src/models/user.py with fields: id, email, password_hash, role, created_at, updated_at
-- [ ] T016 [P] [US1] Create ClinicMembership model in backend/src/models/clinic_membership.py with fields: id, user_id, clinic_id, joined_at
+- [X] T014 [P] [US1] Create Clinic model in backend/src/models/clinic.py with fields: id, name, is_training, analytics_period_days, created_at, updated_at
+- [X] T015 [P] [US1] Create User model in backend/src/models/user.py with fields: id, email, password_hash, role, created_at, updated_at
+- [X] T016 [P] [US1] Create ClinicMembership model in backend/src/models/clinic_membership.py with fields: id, user_id, clinic_id, joined_at
 - [ ] T017 [US1] Create database migration for Clinic, User, ClinicMembership tables in alembic/versions/002_clinic_auth.py
 - [ ] T018 [P] [US1] Implement ClinicRepository in backend/src/repositories/clinic_repository.py with create, get, list, update methods
 - [ ] T019 [P] [US1] Implement UserRepository in backend/src/repositories/user_repository.py with create, get_by_email, list methods
