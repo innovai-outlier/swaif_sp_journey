@@ -54,7 +54,48 @@ v1 supports **multiple clinics**. **Contoso** is seeded as a training clinic. Ad
 - Q: FR-COMPLIANCE-01 requires audit logs for multiple event types but doesn't specify log retention duration or archival strategy. This is critical for LGPD compliance, storage planning, and determining when logs can be safely purged or archived. What is the audit log retention policy? → A: Retain 5 years active + archive older
 - Q: FR-ANALYTICS-01 specifies "last 30 days (configurable per clinic)" for adherence analytics but doesn't specify the minimum allowable configuration range. Without bounds, clinics could set unreasonably short periods that produce meaningless quartiles, or very long periods that impact performance. What is the allowable analytics period configuration range? → A: 7 to 90 days configurable
 - Q: FR-POINTS-02 describes streak bonus calculation based on "consecutive eligible completions (in completion order)" but doesn't specify how the system should handle ties when multiple tasks complete on the same day. This affects the determinism of streak calculation and whether order-of-completion within a day matters. How should same-day completions be handled for streak calculation? → A: Same-day completions count as single chain link
+## Non-Functional Requirements
 
+### NFR-TEST-01 Unit Test Coverage
+- System SHALL maintain ≥80% unit test coverage for all service layer code (backend/src/services/).
+- Coverage SHALL be measured using pytest-cov and enforced via CI/CD gates.
+- Services containing business logic (ScoringService, RedemptionService, AuthService, etc.) SHALL have comprehensive unit tests.
+
+### NFR-TEST-02 Integration Testing
+- System SHALL include integration tests for all API endpoints using pytest.
+- Integration tests SHALL verify:
+  - Request/response schemas match specifications
+  - Tenant isolation enforcement (no cross-clinic data leakage)
+  - Authentication and authorization requirements
+  - Database transactions and data integrity
+- Integration tests SHALL use test database fixtures with known state.
+
+### NFR-TEST-03 Contract Validation
+- System SHALL implement contract validation tests using schemathesis.
+- Contract tests SHALL validate actual API responses against OpenAPI specification (specs/001-clinic-followup/contracts/openapi.yaml).
+- Contract tests SHALL cover all endpoints and response status codes defined in specification.
+
+### NFR-TEST-04 End-to-End Testing
+- System SHALL include end-to-end tests for critical user flows:
+  - Complete authentication flow (login, session management, logout)
+  - Task assignment and status transition workflow (admin assigns → patient updates → admin validates)
+  - Points calculation and redemption workflow (task completion → points awarded → redemption requested → admin approval)
+- E2E tests SHALL verify cross-component integration (backend + database + frontend interactions).
+
+### NFR-TEST-05 Test Data Management
+- System SHALL use pytest fixtures for test data creation and cleanup.
+- Tests SHALL NOT depend on production data or shared test databases.
+- Each test SHALL create isolated test data and clean up after execution.
+
+### NFR-TEST-06 Security Testing
+- System SHALL include security-focused tests verifying:
+  - Password hashing implementation (never store plaintext)
+  - Session token security and expiration
+  - SQL injection prevention via ORM (SQLAlchemy parameterized queries)
+  - RBAC enforcement (admin vs patient permissions)
+  - PHI/PII protection (no sensitive data in logs)
+
+**Testing is MANDATORY**: All tests SHALL pass before code merge. No exceptions for healthcare compliance.
 ## Functional Requirements
 
 ### FR-CLINIC-01 Multi-Clinic
