@@ -46,6 +46,8 @@
 
 ## 6) Admin UI — Patients, Tasks, Validation
 - [ ] Admin: patient list + patient detail
+- [ ] Admin: assign patient to journey stage
+- [ ] Admin: advance patient through journey stages (manual progression)
 - [ ] Admin: assign tasks to patient (title, description, due date)
 - [ ] Admin: view task history and status timeline
 - [ ] Admin: validate completion for streak bonus
@@ -60,8 +62,8 @@
 - [ ] Implement streak bonus computation on validation events
 - [ ] Persist all points changes to points_ledger
 - [ ] Add unit tests covering examples:
-  - [ ] 5 consecutive before-due-date validations => 10+12+14+16+18
-  - [ ] broken chain example => 10+10+10+12+10 (per intake narrative)
+  - [ ] 5 consecutive before-due-date validations => bonuses: 10+12+14+16+18 (chain increments: 0+2+2+2+2)
+  - [ ] broken chain example => bonuses: 10+10+10+12+10 (chain increments: 0+0+0+2+0); chain breaks when an ineligible validation occurs between eligible ones
 
 ## 9) Rewards & Redemptions
 - [ ] Admin: vendor management

@@ -62,6 +62,17 @@ Suggested tables (simplified):
            validated_at, validated_by_user_id,
            is_soft_deleted bool)
 
+### Status Mapping (Portuguese Domain ↔ Schema Flags)
+| Domain Status (PT) | Schema Representation |
+|--------------------|----------------------|
+| A_FAZER | status = 'A_FAZER' |
+| FEITO | status = 'FEITO' |
+| EM_ATRASO | status = 'EM_ATRASO', sets `had_delay = true` |
+| PAUSADO | status = 'PAUSADO', sets `had_pause = true` |
+| RETOMADO | status = 'RETOMADO', sets `had_reopen = true` |
+| CANCELADO_PELO_PACIENTE | status = 'CANCELADO_PELO_PACIENTE' |
+| CANCELADO_PELA_CLINICA | status = 'CANCELADO_PELA_CLINICA' |
+
 - `points_ledger` (id, clinic_id, patient_id, task_id nullable, redemption_id nullable,
                    entry_type, points_delta int, reason, created_at)
 
@@ -95,9 +106,10 @@ Record base award as a ledger entry.
 
 ### Streak bonus (validated)
 - Only award streak bonus on admin validation.
+- Chain order is determined by `validated_at` timestamp (not task due date or completion timestamp).
 - Maintain patient streak state (can be derived from ledger + validation order):
   - Find last validated completion that was eligible and chain-continuing.
-  - If current validated completion is eligible AND directly follows chain order, bonus = last_bonus + 2 else 10.
+  - If current validated completion is eligible (`completion_at < due_at`) AND its `validated_at` directly follows the previous chain entry (no ineligible validation in between), bonus = last_bonus + 2; else bonus resets to 10.
 - Record streak award as ledger entry.
 
 ## Redemption & Points Consumption
@@ -108,9 +120,10 @@ Record base award as a ledger entry.
 Pick one and keep consistent. Recommended for prototype: consume at APPROVED, refund on clinic cancellation/expiry.
 
 ## Analytics (Quartiles)
-- Use points/streak accumulation and signal counts (delay/pause/cancel) over a period (e.g., last 30 days).
-- Compute quartiles to segment patients into top/intermediate/low.
-- Display per clinic.
+See FR-ANALYTICS-01 in spec.md. Implementation notes:
+- Compute over configurable time window (default 30 days)
+- Use SQL window functions (NTILE) for quartile computation
+- Display per clinic in admin dashboard
 
 ## Compliance (LGPD) Notes
 - Store minimum PII (name/email); avoid medical details in v1.
