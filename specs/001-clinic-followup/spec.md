@@ -25,6 +25,9 @@ v1 supports **multiple clinics**. **Contoso** is seeded as a training clinic. Ad
 - Admin user invitation flow (v2); initial admins seeded via migration
 
 ## Users & Roles
+
+**Terminology Note**: "Clinic Admin" (full term) is used throughout this specification. "Admin" may appear in code/UI but always refers to "Clinic Admin" role.
+
 ### Clinic Admin
 - Full access within the clinics they administer:
   - manage clinics (create/edit)
@@ -44,16 +47,28 @@ v1 supports **multiple clinics**. **Contoso** is seeded as a training clinic. Ad
 ## Clarifications
 
 ### Session 2026-01-17
-- Q: FR-AUTH-01 specifies "email + password" authentication but doesn't clarify the session management approach, logout mechanism, or whether admin and patient sessions should have different timeout policies. Which authentication pattern should be implemented? → A: Email + password with session management and standard logout
-- Q: FR-TASK-01 states "Clinic Admin SHALL assign tasks to patients" but doesn't clarify whether patients can create their own tasks or if task creation is exclusively an admin function. What is the task creation authority model? → A: Admin-only task creation; patients can only view and update status
-- Q: FR-ANALYTICS-01 requires adherence analytics with quartile computation over "last 30 days (configurable per clinic)" but doesn't specify the data aggregation strategy. Should analytics be computed real-time, pre-aggregated, or use another approach? → A: Hybrid: real-time for current day + batch for historical data
-- Q: FR-POINTS-02 states "Clinic Admin SHALL validate completion; streak bonus is granted only after validation" but FR-TASK-02/03 allow patients to transition tasks to FEITO. How should validation interact with task status workflow? → A: Patient can mark FEITO; validation is separate admin action that unlocks streak bonus
-- Q: FR-REDEEM-01 describes redemption workflow but doesn't specify what happens if a patient requests a redemption that exceeds their available points balance. What is the point insufficiency handling strategy? → A: Block redemption request if insufficient points; show clear error message
-- Q: The spec describes task status transitions and point calculations but doesn't specify the data retention behavior when a patient or admin cancels a task. This affects audit trail completeness, compliance reporting, and whether historical analytics include cancelled tasks. What is the task deletion/retention strategy? → A: Soft delete with audit trail
-- Q: FR-REWARD-01 specifies reward eligibility rules with eligible_plan_id and eligible_pillar_id (both optional), but doesn't address how the system should handle rewards when a patient's plan changes mid-journey. This impacts whether previously requested redemptions remain valid and whether reward eligibility is evaluated at request time vs. redemption time. What is the eligibility evaluation strategy? → A: Snapshot eligibility at request time
-- Q: FR-COMPLIANCE-01 requires audit logs for multiple event types but doesn't specify log retention duration or archival strategy. This is critical for LGPD compliance, storage planning, and determining when logs can be safely purged or archived. What is the audit log retention policy? → A: Retain 5 years active + archive older
-- Q: FR-ANALYTICS-01 specifies "last 30 days (configurable per clinic)" for adherence analytics but doesn't specify the minimum allowable configuration range. Without bounds, clinics could set unreasonably short periods that produce meaningless quartiles, or very long periods that impact performance. What is the allowable analytics period configuration range? → A: 7 to 90 days configurable
+
+**Authentication & Session Management**
+- Q: FR-AUTH-01 specifies "email + password" authentication but doesn't clarify the session management approach, logout mechanism, or whether Clinic Admin and patient sessions should have different timeout policies. Which authentication pattern should be implemented? → A: Email + password with session management and standard logout
+
+**Task Management & Authority**
+- Q: FR-TASK-01 states "Clinic Admin SHALL assign tasks to patients" but doesn't clarify whether patients can create their own tasks or if task creation is exclusively a Clinic Admin function. What is the task creation authority model? → A: Clinic Admin-only task creation; patients can only view and update status
+- Q: FR-POINTS-02 states "Clinic Admin SHALL validate completion; streak bonus is granted only after validation" but FR-TASK-02/03 allow patients to transition tasks to FEITO. How should validation interact with task status workflow? → A: Patient can mark FEITO; validation is separate Clinic Admin action that unlocks streak bonus
+- Q: The spec describes task status transitions and point calculations but doesn't specify the data retention behavior when a patient or Clinic Admin cancels a task. This affects audit trail completeness, compliance reporting, and whether historical analytics include cancelled tasks. What is the task deletion/retention strategy? → A: Soft delete with audit trail
+
+**Points & Scoring**
 - Q: FR-POINTS-02 describes streak bonus calculation based on "consecutive eligible completions (in completion order)" but doesn't specify how the system should handle ties when multiple tasks complete on the same day. This affects the determinism of streak calculation and whether order-of-completion within a day matters. How should same-day completions be handled for streak calculation? → A: Same-day completions count as single chain link
+
+**Rewards & Redemptions**
+- Q: FR-REDEEM-01 describes redemption workflow but doesn't specify what happens if a patient requests a redemption that exceeds their available points balance. What is the point insufficiency handling strategy? → A: Block redemption request if insufficient points; show clear error message
+- Q: FR-REWARD-01 specifies reward eligibility rules with eligible_plan_id and eligible_pillar_id (both optional), but doesn't address how the system should handle rewards when a patient's plan changes mid-journey. This impacts whether previously requested redemptions remain valid and whether reward eligibility is evaluated at request time vs. redemption time. What is the eligibility evaluation strategy? → A: Snapshot eligibility at request time
+
+**Data Retention & Compliance**
+- Q: FR-COMPLIANCE-01 requires audit logs for multiple event types but doesn't specify log retention duration or archival strategy. This is critical for LGPD compliance, storage planning, and determining when logs can be safely purged or archived. What is the audit log retention policy? → A: Retain 5 years active + archive older
+
+**Configuration & Analytics**
+- Q: FR-ANALYTICS-01 requires adherence analytics with quartile computation over "last 30 days (configurable per clinic)" but doesn't specify the data aggregation strategy. Should analytics be computed real-time, pre-aggregated, or use another approach? → A: Hybrid: real-time for current day + batch for historical data
+- Q: FR-ANALYTICS-01 specifies "last 30 days (configurable per clinic)" for adherence analytics but doesn't specify the minimum allowable configuration range. Without bounds, clinics could set unreasonably short periods that produce meaningless quartiles, or very long periods that impact performance. What is the allowable analytics period configuration range? → A: 7 to 90 days configurable
 ## Non-Functional Requirements
 
 ### NFR-TEST-01 Unit Test Coverage
@@ -122,7 +137,8 @@ v1 supports **multiple clinics**. **Contoso** is seeded as a training clinic. Ad
 ### FR-TASK-01 Task Assignment
 - Clinic Admin SHALL assign tasks to patients with due dates (direct assignment only in v1).
 - Task creation is restricted to Clinic Admins only; patients cannot create tasks.
-- Patient SHALL view their assigned tasks and change statuses only.
+- Patient SHALL view all their assigned tasks (including cancelled tasks) and change statuses only.
+- Patient view SHALL display cancellation reason for admin-cancelled tasks (CANCELADO_PELA_CLINICA).
 
 ### FR-TASK-02 Task Statuses
 Supported statuses:
@@ -138,7 +154,7 @@ Valid transitions:
 
 ### FR-TASK-04 Task Deletion and Retention
 - System SHALL implement soft delete for all cancelled tasks (CANCELADO_PELO_PACIENTE, CANCELADO_PELA_CLINICA).
-- Cancelled tasks SHALL be marked as deleted but retained in the database with complete audit trail.
+- Cancelled tasks SHALL be marked as deleted but retained in the database with complete audit trail (audit trail fields per FR-COMPLIANCE-01: event_type, entity_type, entity_id, event_data JSONB with task status history, timestamps, actor).
 - Cancelled tasks SHALL remain queryable for analytics, compliance reporting, and historical analysis.
 - System SHALL include cancelled task metrics in adherence analytics (FR-ANALYTICS-01).
 
@@ -192,14 +208,14 @@ Recommended statuses:
 - On EXPIRED, points SHALL be refunded to the patient via a compensating ledger entry.
 
 ### FR-ANALYTICS-01 Adherence Analytics
-- Admin SHALL see adherence segmentation based on quartiles computed over a configurable analytics period (default: 30 days, range: 7 to 90 days per clinic).
+- Clinic Admin SHALL see adherence segmentation based on quartiles computed over a configurable analytics period (default: 30 days, range: 7 to 90 days per clinic).
 - System SHALL use hybrid aggregation: real-time computation for current day data + daily batch aggregation for historical data (updated via scheduled job).
 - Metrics include:
   - Total points accumulated
   - Streak bonus accumulation
   - Counts of delayed, paused, and cancelled tasks
 - Quartile thresholds are computed dynamically per clinic based on patient distribution.
-- Admin dashboard SHALL display:
+- Clinic Admin dashboard SHALL display:
   - Summary cards: Total patients, Average points, Period range (configurable days)
   - Adherence table with columns: Patient Name, Quartile (Q1/Q2/Q3/Q4), Total Points, Streak Points, Tasks Completed, Tasks Delayed, Tasks Paused, Tasks Cancelled
   - Quartile distribution indicator showing count of patients in each quartile
@@ -225,19 +241,19 @@ Recommended statuses:
 
 ## Acceptance Criteria (Pass/Fail)
 1) Multi-clinic:
-   - Admin can create a new clinic in addition to seeded Contoso.
+   - Clinic Admin can create a new clinic in addition to seeded Contoso.
    - Data in clinic X is not visible in clinic Y.
 2) Setup:
-   - Admin creates 1 Methodology with ≥3 Pillars, ≥1 Follow-up Plan, and ≥3 Journey Stages.
+   - Clinic Admin creates 1 Methodology with ≥3 Pillars, ≥1 Follow-up Plan, and ≥3 Journey Stages.
 3) Tasks:
-   - Admin assigns tasks to patients; patients see and update statuses.
+   - Clinic Admin assigns tasks to patients; patients see and update statuses.
 4) Scoring:
    - Base points follow the specified deduction rules.
-   - Streak bonus is granted only after admin validation and follows the chain (+2) rule.
+   - Streak bonus is granted only after Clinic Admin validation and follows the chain (+2) rule.
 5) Rewards:
    - Rewards enforce quantity/expiry/eligibility; patient view shows points-only.
 6) Redemptions:
-   - Patient can request; admin can approve/reject; points are consumed consistently.
+   - Patient can request; Clinic Admin can approve/reject; points are consumed consistently.
 7) UI labels:
    - All UI text originates from label packs; switching locale is possible (fallback to pt-BR).
 8) LGPD:

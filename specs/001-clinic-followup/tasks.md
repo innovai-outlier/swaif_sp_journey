@@ -33,6 +33,7 @@
 - [ ] T008 [P] Configure pytest with conftest.py for shared fixtures in backend/tests/conftest.py
 - [ ] T009 [P] Configure logging infrastructure in backend/src/config/logging.py
 - [ ] T010 [P] Create .gitignore for Python project (venv/, __pycache__/, .env, *.pyc)
+- [ ] T010a [P] Configure scheduler infrastructure for background jobs (APScheduler or system cron) with configuration in .env.example (SCHEDULER_ENABLED, CRON_TIMEZONE)
 
 ---
 
@@ -96,6 +97,7 @@
 - [ ] T038 [US1] Implement /auth routes in backend/src/api/v1/auth.py (login, logout, me, set-active-clinic)
 - [ ] T039 [US1] Implement /clinics routes in backend/src/api/v1/clinics.py (list, create, get)
 - [ ] T040 [US1] Create seed script for Contoso clinic in scripts/seed_data.py (training clinic + admin user)
+- [ ] T040a [US1] Configure retention policy constants in backend/src/config/compliance.py (AUDIT_LOG_RETENTION_YEARS=5, AUDIT_LOG_ARCHIVE_ENABLED=true)
 - [ ] T041 [US1] Add session middleware configuration to backend/src/main.py
 - [ ] T042 [US1] Add audit logging for auth events (login, logout, failed attempts)
 
@@ -347,7 +349,7 @@
 - [ ] T134 [US8] Implement RedemptionService in backend/src/services/redemption_service.py (eligibility snapshot, points reserve, refund logic, status transitions)
 - [ ] T135 [US8] Implement /redemptions routes in backend/src/api/v1/redemptions.py (list with filters, request, approve, reject, cancel, mark redeemed)
 - [ ] T136 [US8] Add point insufficiency validation before redemption request (return 400 with clear error)
-- [ ] T137 [US8] Create auto-expiration scheduled job in scripts/expire_redemptions.py (daily cron: mark EXPIRED if approved_at < NOW() - 30 days)
+- [ ] T137 [US8] Create auto-expiration scheduled job in scripts/expire_redemptions.py (daily execution at 02:00 UTC: mark EXPIRED if approved_at < NOW() - 30 days, refund points) and configure scheduler (APScheduler or cron) per T010a infrastructure
 - [ ] T138 [US8] Integrate RedemptionService with PointsLedger for reserve/refund transactions
 - [ ] T139 [US8] Add audit logging for redemption lifecycle events
 
@@ -410,7 +412,7 @@
 ### Implementation for User Story 10
 
 - [ ] T153 [P] [US10] Create pt-BR label pack in resources/labels/pt-BR.json (all UI strings from spec acceptance criteria)
-- [ ] T154 [P] [US10] Create en-US label pack template in resources/labels/en-US.json (structure only, values TBD)
+- [ ] T154 [P] [US10] [OPTIONAL] Create en-US label pack template in resources/labels/en-US.json (structure only for future locale expansion; values not required for v1; pt-BR is sufficient)
 - [ ] T155 [US10] Implement LabelService in backend/src/services/label_service.py (load locale file, interpolation, fallback to pt-BR, warning logs)
 - [ ] T156 [US10] Add APP_LOCALE environment variable to .env.example
 - [ ] T157 [US10] Integrate LabelService with API responses (label key resolution before response serialization)

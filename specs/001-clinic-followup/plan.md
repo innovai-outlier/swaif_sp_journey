@@ -14,6 +14,7 @@ Multi-clinic patient follow-up system with gamification, deterministic scoring, 
 **Language/Version**: Python 3.11+  
 **Primary Dependencies**: FastAPI (backend API), Streamlit (admin/patient UI), SQLAlchemy (ORM), Pydantic (validation), Alembic (migrations)  
 **Storage**: PostgreSQL 15+ (relational data with JSON support for audit logs)  
+**Session Management**: Server-side sessions with 24-hour timeout (SESSION_TIMEOUT_SECONDS=86400), stored in PostgreSQL sessions table, single active session per user (new login invalidates previous), logout explicitly revokes session token  
 **Testing**: pytest (unit, integration, contract), pytest-cov (≥80% coverage), schemathesis (OpenAPI contract validation), pytest-asyncio (async tests)  
 **Target Platform**: Linux server (Docker containerized), web browser clients
 **Project Type**: web (backend + frontend)  
