@@ -1,0 +1,50 @@
+User: Follow instructions in [speckit.checklist.prompt.md](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/.github/prompts/speckit.checklist.prompt.md).
+#file:001-clinic-followup
+
+GitHub Copilot: I'll help you create a requirements quality checklist for the 001-clinic-followup feature. Let me start by setting up and understanding your needs. 
+
+Ran terminal command: bash .specify/scripts/bash/check-prerequisites.sh --json
+
+Good! Now let me load the feature context to understand what we're working with: 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/spec.md#1-1), lines 1 to 100
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/plan.md#1-1), lines 1 to 100
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/tasks.md#1-1), lines 1 to 100
+
+Now I'll clarify your intent to generate the most useful checklist. Based on analyzing your feature documents, I can see this is a healthcare follow-up system with critical security, compliance, and multi-tenant requirements.
+
+## Clarifying Questions
+
+**Q1: Checklist Focus & Risk Prioritization**
+
+Given the healthcare compliance context (LGPD, PHI/PII handling, multi-clinic isolation), which risk areas should receive mandatory gating checks?
+
+| Option | Candidate Focus | Why It Matters |
+|--------|----------------|----------------|
+| A | **Security & Compliance** | Auth requirements, data protection, audit logs, LGPD retention - highest risk if incomplete |
+| B | **Multi-Tenant Isolation** | Tenant filtering, cross-clinic data leakage prevention - clinic safety baseline critical |
+| C | **Business Logic Completeness** | Scoring rules, task workflows, redemption logic - core feature correctness |
+| D | **API Contract Quality** | OpenAPI spec alignment, endpoint coverage, error responses - integration dependency |
+| E | **Comprehensive (All Above)** | Full requirements quality audit across all dimensions - most thorough |
+
+**Q2: Checklist Depth & Usage Context**
+
+Is this a lightweight pre-commit sanity check or a formal release gate requiring exhaustive validation?
+
+| Option | Depth Level | Use Case |
+|--------|-------------|----------|
+| A | **Light** | Quick author self-check before PR (20-30 items, high-level gaps only) |
+| B | **Standard** | Peer review checklist for PR approval (40-60 items, reasonable coverage) |
+| C | **Deep** | Pre-release quality gate (60+ items, exhaustive edge cases & cross-references) |
+
+**Q3: Scenario Coverage Priorities**
+
+The spec documents 8 user stories with complex workflows. Which scenario classes need explicit requirement validation?
+
+| Option | Scenario Classes to Validate | Impact |
+|--------|------------------------------|--------|
+| A | **Primary flows only** | Happy paths for each user story (task assignment, redemption, login) |
+| B | **Primary + Error handling** | Include exception scenarios (auth failures, insufficient points, invalid transitions) |
+| C | **Full scenario matrix** | Primary, Alternate, Exception, Recovery, Non-Functional (performance, security, compliance) |
