@@ -1,0 +1,217 @@
+User: Follow instructions in [speckit.clarify.prompt.md](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/.github/prompts/speckit.clarify.prompt.md).
+
+GitHub Copilot: I'll help you clarify the active feature specification. Let me start by checking the prerequisites. 
+
+Ran terminal command: .specify/scripts/bash/check-prerequisites.sh --json --paths-only
+
+Let me try a different approach to run this bash script on Windows: 
+
+Ran terminal command: bash .specify/scripts/bash/check-prerequisites.sh --json --paths-only
+
+I see the issue - the branch naming doesn't match the expected pattern. Let me directly work with the spec file that I can see in the workspace structure: 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/spec.md)
+
+Now let me analyze this specification for ambiguities and missing decision points. I'll perform a structured coverage scan and identify the most critical areas that need clarification.
+
+Based on my analysis, I've identified several areas that need clarification. Let me ask the most critical question first:
+
+---
+
+**Recommended:** Option B - Best practice for production systems; provides user accountability, enables proper audit trails for LGPD compliance (FR-COMPLIANCE-01), supports proper access control patterns, and aligns with the multi-clinic admin requirement already in the spec.
+
+| Option | Description |
+|--------|-------------|
+| A | Email-only authentication (passwordless magic link system) |
+| B | Email + password with session management and standard logout |
+| C | Email + password + 2FA (SMS or authenticator app) |
+| D | OAuth2 integration (Google, Microsoft, etc.) |
+| Short | Provide a different short answer (≤5 words) |
+
+**Question:** FR-AUTH-01 specifies "email + password" authentication but doesn't clarify the session management approach, logout mechanism, or whether admin and patient sessions should have different timeout policies. Which authentication pattern should be implemented?
+
+You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.
+
+User: Follow instructions in [speckit.clarify.prompt.md](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/.github/prompts/speckit.clarify.prompt.md).
+
+GitHub Copilot: I'm currently in the clarification process for the clinic follow-up feature specification. I've already started and asked you the first question about authentication session management.
+
+**Current question awaiting your response:**
+
+**Recommended:** Option B - Email + password with session management and standard logout (best practice for production systems with proper audit trails for LGPD compliance)
+
+| Option | Description |
+|--------|-------------|
+| A | Email-only authentication (passwordless magic link system) |
+| B | Email + password with session management and standard logout |
+| C | Email + password + 2FA (SMS or authenticator app) |
+| D | OAuth2 integration (Google, Microsoft, etc.) |
+| Short | Provide a different short answer (≤5 words) |
+
+**Question:** FR-AUTH-01 specifies "email + password" authentication but doesn't clarify the session management approach, logout mechanism, or whether admin and patient sessions should have different timeout policies. Which authentication pattern should be implemented?
+
+You can reply with the option letter (e.g., "A" or "B"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.
+
+User: B
+
+GitHub Copilot: Perfect. Let me integrate this clarification into the spec. 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/spec.md)
+
+Using "Replace String in File"
+
+
+```
+
+```
+
+
+Using "Replace String in File"
+
+
+```
+
+```
+Now let me ask the next critical question:
+
+---
+
+**Recommended:** Option B - Best practice for medical applications; ensures data validity, prevents gaming of the system, reduces data entry errors, and aligns with typical clinic workflows where admins maintain master data and assign to patients.
+
+| Option | Description |
+|--------|-------------|
+| A | Patient self-creates tasks from a template library and assigns to themselves |
+| B | Admin-only task creation; patients can only view and update status |
+| C | Admin creates tasks, but patients can duplicate/copy existing tasks for themselves |
+| D | Both admin and patient can create tasks independently |
+| Short | Provide a different short answer (≤5 words) |
+
+**Question:** FR-TASK-01 states "Clinic Admin SHALL assign tasks to patients" but doesn't clarify whether patients can create their own tasks or if task creation is exclusively an admin function. What is the task creation authority model?
+
+You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.
+
+Made changes.
+
+User: B
+
+GitHub Copilot: Using "Multi-Replace String in Files"
+
+
+```
+
+```
+---
+
+**Recommended:** Option B - Standard database-driven approach; supports the requirement for dynamic quartile computation per clinic, enables flexible analytics queries, allows historical trend analysis, and scales efficiently for multiple clinics without performance degradation.
+
+| Option | Description |
+|--------|-------------|
+| A | Real-time computation on-demand when admin opens analytics (no pre-aggregation) |
+| B | Daily batch aggregation of metrics stored in summary tables with incremental updates |
+| C | Event-sourcing with materialized views updated on each points/task event |
+| D | Hybrid: real-time for current day + batch for historical data |
+| Short | Provide a different short answer (≤5 words) |
+
+**Question:** FR-ANALYTICS-01 requires adherence analytics with quartile computation over "last 30 days (configurable per clinic)" but doesn't specify the data aggregation strategy. Should analytics be computed real-time, pre-aggregated, or use another approach?
+
+You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.
+
+Made changes.
+
+User: D
+
+GitHub Copilot: Using "Multi-Replace String in Files"
+
+
+```
+
+```
+---
+
+**Recommended:** Option C - Balanced approach that ensures data quality while maintaining operational efficiency; prevents accidental early status changes, provides clear workflow separation between patients and admins, and aligns with the clinic validation requirement for streak bonuses (FR-POINTS-02).
+
+| Option | Description |
+|--------|-------------|
+| A | Patient can immediately mark task as FEITO; admin validation only affects streak bonus |
+| B | Patient marks "ready for review"; admin changes status to FEITO after validation |
+| C | Patient can mark FEITO; validation is separate admin action that unlocks streak bonus |
+| D | All status changes require admin approval before taking effect |
+| Short | Provide a different short answer (≤5 words) |
+
+**Question:** FR-POINTS-02 states "Clinic Admin SHALL validate completion; streak bonus is granted only after validation" but FR-TASK-02/03 allow patients to transition tasks to FEITO. How should validation interact with task status workflow?
+
+You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.
+
+Made changes.
+
+User: C
+
+GitHub Copilot: Using "Multi-Replace String in Files"
+
+
+```
+
+```
+---
+
+**Recommended:** Option B - Industry best practice for point-based systems; prevents negative balances that confuse users, enforces business constraint validation at request time (fail-fast principle), and aligns with the reward eligibility checks already specified in FR-REWARD-01.
+
+| Option | Description |
+|--------|-------------|
+| A | Allow negative balance; patient must earn back to zero before next redemption |
+| B | Block redemption request if insufficient points; show clear error message |
+| C | Allow over-redemption but flag account for admin review |
+| D | Partial redemption: system automatically reduces quantity to match available points |
+| Short | Provide a different short answer (≤5 words) |
+
+**Question:** FR-REDEEM-01 describes redemption workflow but doesn't specify what happens if a patient requests a redemption that exceeds their available points balance. What is the point insufficiency handling strategy?
+
+You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.
+
+Made changes.
+
+User: B
+
+GitHub Copilot: Using "Multi-Replace String in Files"
+
+
+```
+
+```
+Perfect! I've completed the clarification session. Let me provide you with the completion report:
+
+---
+
+## Clarification Session Complete
+
+**Questions asked & answered:** 5
+
+**Updated spec file:** spec.md
+
+**Sections touched:**
+- Clarifications (new section added with Session 2026-01-17)
+- FR-AUTH-01 Authentication
+- FR-TASK-01 Task Assignment
+- FR-ANALYTICS-01 Adherence Analytics
+- FR-POINTS-02 Streak Bonus (Clinic Validated)
+- FR-REDEEM-01 Redemption Workflow
+
+**Coverage summary:**
+
+| Category | Status | Notes |
+|----------|--------|-------|
+| Functional Scope & Behavior | **Resolved** | Task creation authority clarified |
+| Domain & Data Model | **Clear** | Already well-defined |
+| Interaction & UX Flow | **Resolved** | Validation workflow and error handling clarified |
+| Non-Functional: Performance | **Resolved** | Analytics aggregation strategy defined |
+| Non-Functional: Security | **Resolved** | Session management clarified |
+| Non-Functional: Observability | **Clear** | Audit logging already specified |
+| Integration & External Dependencies | **Deferred** | No external integrations in v1 per Non-Goals |
+| Edge Cases & Failure Handling | **Resolved** | Point insufficiency handling defined |
+| Constraints & Tradeoffs | **Clear** | v1/v2 scope boundaries explicit |
+| Terminology & Consistency | **Clear** | Task statuses well-defined |
+| Completion Signals | **Clear** | Acceptance criteria are testable |
+
+**Recommendation:** All critical ambiguities have been resolved. You can proceed to `/speckit.plan` to develop the technical implementation plan.
+
+Made changes.

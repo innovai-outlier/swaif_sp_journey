@@ -1,0 +1,191 @@
+User: Follow instructions in [speckit.plan.prompt.md](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/.github/prompts/speckit.plan.prompt.md).
+#file:001-clinic-followup
+
+GitHub Copilot: I'll execute the speckit.plan workflow for the clinic-followup feature. Let me start by running the setup script. 
+
+Ran terminal command: bash .specify/scripts/bash/setup-plan.sh --json
+
+Now let me load the required context files: 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/spec.md)
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/.specify/memory/constitution.md)
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/plan.md)
+
+Now let me read the tasks.md to understand current status: 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/tasks.md#1-1), lines 1 to 100
+
+Good! Now I see the context. Let me create a todo list and execute the Phase 0 workflow: 
+
+Created 8 todos
+
+Starting: *Fill Technical Context in plan.md* (1/8)
+
+Now let me fill the Technical Context in plan.md: 
+
+Using "Replace String in File"
+
+
+```
+
+```
+
+
+Starting: *Fill Constitution Check section* (2/8)
+
+Now let me fill the Constitution Check section: 
+
+Using "Replace String in File"
+
+
+```
+
+```
+
+
+Starting: *Phase 0: Create research.md* (3/8)
+
+Now Phase 0: Create research.md with technology decisions and best practices: 
+
+Created [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/research.md)
+
+Starting: *Phase 1: Generate data-model.md* (4/8)
+
+Now Phase 1: Generate data-model.md: 
+
+Created [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/data-model.md)
+
+Starting: *Phase 1: Generate API contracts* (5/8)
+
+Now let me create the contracts directory structure and generate OpenAPI contracts: 
+
+Created [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/contracts)
+
+Created [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/contracts/openapi.yaml)
+
+Starting: *Phase 1: Generate quickstart.md* (6/8)
+
+Now let me create the quickstart.md: 
+
+Created [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/quickstart.md)
+
+Starting: *Update agent context* (7/8)
+
+Now let me check if the update-agent-context.sh script exists and run it: 
+
+Searched for files matching `**/*update-agent-context*`, 1 match
+
+Ran terminal command: bash .specify/scripts/bash/update-agent-context.sh copilot
+
+Starting: *Re-evaluate Constitution Check* (8/8)
+
+Now let me update the plan.md with project structure and final constitution check: 
+
+Using "Replace String in File"
+
+
+```
+
+```
+Now let me add the Complexity Tracking section and final Constitution Check: 
+
+Using "Replace String in File"
+
+
+```
+
+```
+Now let me add a final section to the plan.md documenting the Phase 1 completion: 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/plan.md)
+
+Now let me add a final completion section at the end of plan.md: 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/plan.md#130-130), lines 130 to 130
+
+The file appears complete. Let me append a final completion section: 
+
+Ran terminal command: echo '' >> 'c:\Users\dmene\Documents\LIVHealth\TI\Projetos\swaif_II\repos\swaif_sp_journey\specs\001-clinic-followup\plan.md'
+
+Let me read the end of the file and append properly: 
+
+Read [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/plan.md#130-130), lines 130 to 132
+
+Let me create a completion summary file separately: 
+
+Created [](file:///c%3A/Users/dmene/Documents/LIVHealth/TI/Projetos/swaif_II/repos/swaif_sp_journey/specs/001-clinic-followup/PLAN-COMPLETION.md)
+
+Completed: *Re-evaluate Constitution Check* (8/8)
+
+Perfect! Let me create a final summary report:
+
+## Phase 0 & 1 Complete ✅
+
+Successfully executed `/speckit.plan` workflow for feature **001-clinic-followup** on branch `001-Clinic-Followup`.
+
+### Artifacts Generated
+
+**Phase 0 (Research)**:
+- research.md - 10 technology decisions documented
+
+**Phase 1 (Design & Contracts)**:
+- data-model.md - 16 entities with ERD and relationships
+- [contracts/openapi.yaml](c:\Users\dmene\Documents\LIVHealth\TI\Projetos\swaif_II\repos\swaif_sp_journey\specs\001-clinic-followup\contracts\openapi.yaml) - OpenAPI 3.0 contract (30+ endpoints)
+- quickstart.md - Developer setup & validation guide
+
+**Updated**:
+- plan.md - Filled with technical context, constitution check, project structure
+- copilot-instructions.md - Updated with Python 3.11+, FastAPI, Streamlit, PostgreSQL 15+
+
+**Summary**:
+- PLAN-COMPLETION.md - Completion report with validation checklist
+
+### Constitution Check: ✅ ALL GATES PASS
+
+All 9 constitution laws verified. No violations. Safe to proceed.
+
+### Technology Stack
+
+- **Language**: Python 3.11+
+- **Backend**: FastAPI, SQLAlchemy, Pydantic, Alembic
+- **Frontend**: Streamlit (admin + patient UIs)
+- **Database**: PostgreSQL 15+
+- **Testing**: pytest (unit/integration/contract)
+- **Architecture**: Web (monolithic backend + frontend)
+
+### Key Design Decisions
+
+1. **Multi-tenancy**: Row-level `clinic_id` filtering via TenantAwareRepository
+2. **Auth**: Server-side sessions (Starlette + bcrypt)
+3. **Analytics**: Hybrid (real-time today + daily batch for historical)
+4. **i18n**: JSON label packs (no hardcoded UI strings)
+5. **Scoring**: Deterministic base points + streak bonus (+2 per chain link)
+6. **Redemption**: Snapshot eligibility at request time
+7. **Retention**: 5-year active (PostgreSQL) + archive (S3 Glacier)
+
+### Next Steps
+
+**Option A: Start Implementation** (Recommended - tasks.md exists)
+1. Review tasks.md (12 sections, 95+ tasks)
+2. Follow dependency order: Section 0 → 1 → 2 → ... → 12
+3. Check off items as completed
+4. Run tests after each section
+
+**Option B: Refine Tasks**
+```bash
+/speckit.tasks  # If tasks.md needs regeneration/breakdown
+```
+
+### Validation
+
+See quickstart.md for:
+- 5-minute local setup
+- Manual validation of 8 acceptance criteria
+- Testing examples (unit/integration/contract)
+- Troubleshooting guide
+
+**Command complete** ✅
+
+Made changes.

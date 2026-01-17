@@ -69,7 +69,7 @@ v1 supports **multiple clinics**. **Contoso** is seeded as a training clinic. Ad
 - System SHALL log all authentication events (login, logout, failed attempts) for audit compliance.
 - Clinic Admins may be members of multiple clinics; patients belong to exactly one clinic.
 
-### FR-METHOD-01 Methods and Pillars
+### FR-METHOD-01 Methodologies and Pillars
 - Clinic Admin SHALL create Methodologies and associated Pillars.
 
 ### FR-PLAN-01 Follow-up Plans
@@ -158,11 +158,18 @@ Recommended statuses:
   - Streak bonus accumulation
   - Counts of delayed, paused, and cancelled tasks
 - Quartile thresholds are computed dynamically per clinic based on patient distribution.
+- Admin dashboard SHALL display:
+  - Summary cards: Total patients, Average points, Period range (configurable days)
+  - Adherence table with columns: Patient Name, Quartile (Q1/Q2/Q3/Q4), Total Points, Streak Points, Tasks Completed, Tasks Delayed, Tasks Paused, Tasks Cancelled
+  - Quartile distribution indicator showing count of patients in each quartile
+  - Filter/sort controls: by quartile, by points (ascending/descending), by name
 
 ### FR-I18N-01 UI Labels
 - System SHALL not hardcode any UI text.
 - System SHALL load all UI labels/messages from locale files (pt-BR default).
 - System SHALL support adding new locales later with fallback to pt-BR.
+- Locale is set via environment variable (APP_LOCALE) at application startup.
+- Changing locale requires application restart in v1 (runtime locale switcher deferred to v2 per Non-Goals).
 
 ### FR-COMPLIANCE-01 LGPD, Audit, Retention
 - System SHALL maintain audit logs for:
