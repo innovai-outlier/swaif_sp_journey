@@ -1,0 +1,1419 @@
+openapi: 3.0.3
+info:
+  title: SWAIF Clinic Follow-up API
+  version: 1.0.0
+  description: |
+    Multi-clinic patient follow-up system with gamification, scoring, and rewards.
+
+    ## Authentication
+    All endpoints require authentication via session cookies (except /auth/login).
+
+    ## Tenant Isolation
+    All data is scoped to the active clinic context stored in the user's session.
+    Admins with multiple clinic memberships must set active clinic via /auth/set-active-clinic.
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+  - url: https://api.swaif.example.com/api/v1
+    description: Production server
+
+tags:
+  - name: auth
+    description: Authentication and session management
+  - name: clinics
+    description: Clinic management (admin-only)
+  - name: methodologies
+    description: Methodology and pillar management (admin-only)
+  - name: plans
+    description: Follow-up plan management (admin-only)
+  - name: journey
+    description: Journey stage management (admin-only)
+  - name: patients
+    description: Patient management (admin-only for creation, patients can read own data)
+  - name: tasks
+    description: Task assignment and status management
+  - name: scoring
+    description: Points ledger and validation (admin validation only)
+  - name: vendors
+    description: Vendor management (admin-only)
+  - name: rewards
+    description: Reward catalog management and browsing
+  - name: redemptions
+    description: Redemption workflow
+  - name: analytics
+    description: Adherence analytics (admin-only)
+
+paths:
+  # ===== Authentication =====
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Authenticate user
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              required: [email, password]
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSession"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Logout user
+      operationId: logout
+      security:
+        - sessionAuth: []
+      responses:
+        "204":
+          description: Logout successful
+
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: Get current user session info
+      operationId: getCurrentUser
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: User session info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSession"
+
+  /auth/set-active-clinic:
+    post:
+      tags: [auth]
+      summary: Set active clinic for admin users
+      operationId: setActiveClinic
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clinic_id:
+                  type: string
+                  format: uuid
+              required: [clinic_id]
+      responses:
+        "200":
+          description: Active clinic updated
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ===== Clinics =====
+  /clinics:
+    get:
+      tags: [clinics]
+      summary: List all clinics (admin sees all memberships, patient sees own)
+      operationId: listClinics
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: List of clinics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Clinic"
+
+    post:
+      tags: [clinics]
+      summary: Create new clinic (admin-only)
+      operationId: createClinic
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClinicCreate"
+      responses:
+        "201":
+          description: Clinic created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Clinic"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /clinics/{clinic_id}:
+    get:
+      tags: [clinics]
+      summary: Get clinic details
+      operationId: getClinic
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ClinicId"
+      responses:
+        "200":
+          description: Clinic details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Clinic"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ===== Methodologies =====
+  /methodologies:
+    get:
+      tags: [methodologies]
+      summary: List methodologies for active clinic
+      operationId: listMethodologies
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: List of methodologies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Methodology"
+
+    post:
+      tags: [methodologies]
+      summary: Create methodology (admin-only)
+      operationId: createMethodology
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MethodologyCreate"
+      responses:
+        "201":
+          description: Methodology created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Methodology"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /methodologies/{methodology_id}/pillars:
+    get:
+      tags: [methodologies]
+      summary: List pillars for a methodology
+      operationId: listPillars
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: methodology_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of pillars
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pillar"
+
+    post:
+      tags: [methodologies]
+      summary: Create pillar (admin-only)
+      operationId: createPillar
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: methodology_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PillarCreate"
+      responses:
+        "201":
+          description: Pillar created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pillar"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ===== Follow-up Plans =====
+  /plans:
+    get:
+      tags: [plans]
+      summary: List follow-up plans for active clinic
+      operationId: listPlans
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: List of plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FollowUpPlan"
+
+    post:
+      tags: [plans]
+      summary: Create follow-up plan (admin-only)
+      operationId: createPlan
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FollowUpPlanCreate"
+      responses:
+        "201":
+          description: Plan created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowUpPlan"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ===== Journey Stages =====
+  /journey-stages:
+    get:
+      tags: [journey]
+      summary: List journey stages for active clinic
+      operationId: listJourneyStages
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: List of journey stages (ordered by order_index)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JourneyStage"
+
+    post:
+      tags: [journey]
+      summary: Create journey stage (admin-only)
+      operationId: createJourneyStage
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JourneyStageCreate"
+      responses:
+        "201":
+          description: Journey stage created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JourneyStage"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ===== Patients =====
+  /patients:
+    get:
+      tags: [patients]
+      summary: List patients (admin sees all in clinic, patient sees only self)
+      operationId: listPatients
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: List of patients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Patient"
+
+    post:
+      tags: [patients]
+      summary: Create patient (admin-only)
+      operationId: createPatient
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientCreate"
+      responses:
+        "201":
+          description: Patient created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /patients/{patient_id}:
+    get:
+      tags: [patients]
+      summary: Get patient details
+      operationId: getPatient
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: patient_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Patient details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /patients/{patient_id}/advance-journey:
+    post:
+      tags: [patients]
+      summary: Advance patient to next journey stage (admin-only)
+      operationId: advancePatientJourney
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: patient_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                journey_stage_id:
+                  type: string
+                  format: uuid
+              required: [journey_stage_id]
+      responses:
+        "200":
+          description: Patient journey advanced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ===== Tasks =====
+  /patients/{patient_id}/tasks:
+    get:
+      tags: [tasks]
+      summary: List tasks for patient
+      operationId: listTasks
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: patient_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/TaskStatus"
+        - name: include_deleted
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+
+    post:
+      tags: [tasks]
+      summary: Assign task to patient (admin-only)
+      operationId: assignTask
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: patient_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskCreate"
+      responses:
+        "201":
+          description: Task assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /tasks/{task_id}/status:
+    patch:
+      tags: [tasks]
+      summary: Update task status (patient or admin)
+      operationId: updateTaskStatus
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: "#/components/schemas/TaskStatus"
+              required: [status]
+      responses:
+        "200":
+          description: Task status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Invalid status transition
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /tasks/{task_id}/validate:
+    post:
+      tags: [tasks]
+      summary: Validate task completion for streak bonus (admin-only)
+      operationId: validateTask
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Task validated, streak bonus awarded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Task not eligible for validation
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ===== Scoring =====
+  /patients/{patient_id}/points-ledger:
+    get:
+      tags: [scoring]
+      summary: Get patient points ledger
+      operationId: getPointsLedger
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: patient_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Points ledger entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_count:
+                    type: integer
+                  current_balance:
+                    type: integer
+                  entries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PointsLedgerEntry"
+
+  # ===== Vendors =====
+  /vendors:
+    get:
+      tags: [vendors]
+      summary: List vendors for active clinic
+      operationId: listVendors
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: List of vendors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vendor"
+
+    post:
+      tags: [vendors]
+      summary: Create vendor (admin-only)
+      operationId: createVendor
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorCreate"
+      responses:
+        "201":
+          description: Vendor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vendor"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ===== Rewards =====
+  /rewards:
+    get:
+      tags: [rewards]
+      summary: List rewards (admin sees all, patient sees eligible only)
+      operationId: listRewards
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: patient_id
+          in: query
+          description: Filter by eligibility for this patient (patient role auto-fills with own ID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of rewards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reward"
+
+    post:
+      tags: [rewards]
+      summary: Create reward (admin-only)
+      operationId: createReward
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RewardCreate"
+      responses:
+        "201":
+          description: Reward created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reward"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ===== Redemptions =====
+  /redemptions:
+    get:
+      tags: [redemptions]
+      summary: List redemptions (admin sees all, patient sees own)
+      operationId: listRedemptions
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: patient_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/RedemptionStatus"
+      responses:
+        "200":
+          description: List of redemptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Redemption"
+
+    post:
+      tags: [redemptions]
+      summary: Request redemption (patient)
+      operationId: requestRedemption
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedemptionCreate"
+      responses:
+        "201":
+          description: Redemption requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Redemption"
+        "400":
+          description: Insufficient points or reward unavailable
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /redemptions/{redemption_id}/approve:
+    post:
+      tags: [redemptions]
+      summary: Approve redemption (admin-only)
+      operationId: approveRedemption
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: redemption_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Redemption approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Redemption"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /redemptions/{redemption_id}/reject:
+    post:
+      tags: [redemptions]
+      summary: Reject redemption (admin-only)
+      operationId: rejectRedemption
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: redemption_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                admin_notes:
+                  type: string
+      responses:
+        "200":
+          description: Redemption rejected, points refunded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Redemption"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ===== Analytics =====
+  /analytics/adherence:
+    get:
+      tags: [analytics]
+      summary: Get adherence analytics for active clinic (admin-only)
+      operationId: getAdherenceAnalytics
+      security:
+        - sessionAuth: []
+      responses:
+        "200":
+          description: Adherence analytics with quartile segmentation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdherenceAnalytics"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+
+  parameters:
+    ClinicId:
+      name: clinic_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    Unauthorized:
+      description: Authentication required or session expired
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+    UserSession:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, PATIENT]
+        active_clinic_id:
+          type: string
+          format: uuid
+          nullable: true
+        clinic_memberships:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    Clinic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        is_training:
+          type: boolean
+        analytics_period_days:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ClinicCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        analytics_period_days:
+          type: integer
+          default: 30
+      required: [name]
+
+    Methodology:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    MethodologyCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+      required: [name]
+
+    Pillar:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        methodology_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    PillarCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+      required: [name]
+
+    FollowUpPlan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        methodology_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        pillar_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    FollowUpPlanCreate:
+      type: object
+      properties:
+        methodology_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        pillar_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required: [methodology_id, name, pillar_ids]
+
+    JourneyStage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        order_index:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    JourneyStageCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        order_index:
+          type: integer
+      required: [name, order_index]
+
+    Patient:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        enrollment_date:
+          type: string
+          format: date
+        current_journey_stage_id:
+          type: string
+          format: uuid
+          nullable: true
+        points_balance:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    PatientCreate:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        full_name:
+          type: string
+        enrollment_date:
+          type: string
+          format: date
+      required: [email, password, full_name]
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patient_id:
+          type: string
+          format: uuid
+        pillar_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/TaskStatus"
+        assigned_at:
+          type: string
+          format: date-time
+        due_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        validated_at:
+          type: string
+          format: date-time
+          nullable: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    TaskCreate:
+      type: object
+      properties:
+        pillar_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        due_at:
+          type: string
+          format: date-time
+      required: [pillar_id, title, due_at]
+
+    TaskStatus:
+      type: string
+      enum:
+        - A_FAZER
+        - FEITO
+        - EM_ATRASO
+        - PAUSADO
+        - RETOMADO
+        - CANCELADO_PELO_PACIENTE
+        - CANCELADO_PELA_CLINICA
+
+    PointsLedgerEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patient_id:
+          type: string
+          format: uuid
+        task_id:
+          type: string
+          format: uuid
+          nullable: true
+        event_type:
+          type: string
+          enum:
+            - BASE_POINTS_AWARDED
+            - BASE_POINTS_DEDUCTED
+            - STREAK_BONUS_AWARDED
+            - REDEMPTION_RESERVED
+            - REDEMPTION_REFUNDED
+        points_delta:
+          type: integer
+        balance_after:
+          type: integer
+        metadata:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        contact_info:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    VendorCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        contact_info:
+          type: string
+          nullable: true
+      required: [name]
+
+    Reward:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        points_cost:
+          type: integer
+        monetary_value:
+          type: number
+          format: decimal
+          description: Admin-only field (not shown to patients)
+        quantity_available:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        eligible_plan_id:
+          type: string
+          format: uuid
+          nullable: true
+        eligible_pillar_id:
+          type: string
+          format: uuid
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    RewardCreate:
+      type: object
+      properties:
+        vendor_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        points_cost:
+          type: integer
+        monetary_value:
+          type: number
+          format: decimal
+        quantity_available:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        eligible_plan_id:
+          type: string
+          format: uuid
+          nullable: true
+        eligible_pillar_id:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+        [vendor_id, name, points_cost, monetary_value, quantity_available]
+
+    Redemption:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patient_id:
+          type: string
+          format: uuid
+        reward_id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/RedemptionStatus"
+        points_cost:
+          type: integer
+        eligibility_snapshot:
+          type: object
+        requested_at:
+          type: string
+          format: date-time
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        rejected_at:
+          type: string
+          format: date-time
+          nullable: true
+        redeemed_at:
+          type: string
+          format: date-time
+          nullable: true
+        expired_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+        admin_notes:
+          type: string
+          nullable: true
+
+    RedemptionCreate:
+      type: object
+      properties:
+        reward_id:
+          type: string
+          format: uuid
+      required: [reward_id]
+
+    RedemptionStatus:
+      type: string
+      enum:
+        - REQUESTED
+        - APPROVED
+        - REJECTED
+        - REDEEMED
+        - CANCELLED_BY_PATIENT
+        - CANCELLED_BY_CLINIC
+        - EXPIRED
+
+    AdherenceAnalytics:
+      type: object
+      properties:
+        clinic_id:
+          type: string
+          format: uuid
+        analytics_period_days:
+          type: integer
+        quartiles:
+          type: object
+          properties:
+            q1:
+              $ref: "#/components/schemas/QuartileMetrics"
+            q2:
+              $ref: "#/components/schemas/QuartileMetrics"
+            q3:
+              $ref: "#/components/schemas/QuartileMetrics"
+            q4:
+              $ref: "#/components/schemas/QuartileMetrics"
+        overall:
+          $ref: "#/components/schemas/OverallMetrics"
+
+    QuartileMetrics:
+      type: object
+      properties:
+        patient_count:
+          type: integer
+        avg_points:
+          type: number
+        avg_streak_bonus:
+          type: number
+        avg_delayed_tasks:
+          type: number
+        avg_paused_tasks:
+          type: number
+        avg_cancelled_tasks:
+          type: number
+
+    OverallMetrics:
+      type: object
+      properties:
+        total_patients:
+          type: integer
+        total_tasks:
+          type: integer
+        total_points_awarded:
+          type: integer
+        total_streak_bonuses:
+          type: integer
